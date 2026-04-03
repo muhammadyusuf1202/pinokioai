@@ -1,0 +1,817 @@
+{% extends 'base.html' %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
+{% block content %}
+<style>
+  /* Gemini Minimalist Dashboard Style */
+  :root {
+    --bg-dark: #000000;
+    --panel-bg: #0a0a0a;
+    --text-white: #ffffff;
+    --text-gray: #888888;
+    --fire: #ff4d00;
+    --border: #1a1a1a;
+  }
+
+  body {
+    background-color: var(--bg-dark);
+    color: var(--text-white);
+    margin: 0;
+    font-family: 'Sora', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .wrapper {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+  }
+
+  /* MAIN CONTENT */
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 40px;
+    position: relative;
+    overflow-y: auto;
+  }
+
+  .top-bar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 16px;
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    text-decoration: none;
+    color: var(--text-white);
+    transition: 0.3s;
+  }
+
+  .user-badge:hover { border-color: var(--fire); background: #111; }
+
+  .avatar {
+    width: 32px; height: 32px;
+    background: var(--fire);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+  }
+
+  /* WELCOME SECTION */
+  .welcome-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .welcome-text h1 {
+    font-size: 3.5rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .welcome-text h1 span {
+    background: linear-gradient(90deg, #ff4d00, #ffaa00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .sub-text {
+    color: var(--text-gray);
+    font-size: 1.2rem;
+    margin-bottom: 45px;
+  }
+
+  /* QUICK ACTIONS */
+  .quick-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    max-width: 900px;
+    width: 100%;
+  }
+
+  .action-card {
+    background: #0f0f0f;
+    border: 1px solid var(--border);
+    padding: 24px;
+    border-radius: 20px;
+    text-align: left;
+    cursor: pointer;
+    transition: 0.3s;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .action-card:hover {
+    border-color: var(--fire);
+    background: #141414;
+    transform: translateY(-5px);
+  }
+
+  .action-icon {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+  }
+
+  .action-card h3 {
+    font-size: 1rem;
+    margin-bottom: 8px;
+  }
+
+  .action-card p {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    line-height: 1.4;
+  }
+
+  /* BOTTOM INPUT AREA */
+  .bottom-input-wrapper {
+    max-width: 800px;
+    width: 100%;
+    margin: 50px auto 20px;
+  }
+
+  .input-box {
+    background: #111;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: 0.3s;
+  }
+
+  .input-box:focus-within {
+    border-color: #333;
+    background: #151515;
+  }
+
+  #dashInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: white;
+    outline: none;
+    resize: none;
+    font-family: inherit;
+    font-size: 1rem;
+    padding-top: 8px;
+    height: 45px;
+  }
+
+  .send-btn {
+    background: var(--fire);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+  }
+
+  .send-btn:hover {
+    transform: scale(1.05);
+    background: #ff6622;
+  }
+  /* AI javob berayotganida chiqadigan nuqtalar animatsiyasi */
+.typing-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 15px;
+    background: #111;
+    border-radius: 15px;
+    width: fit-content;
+}
+
+.typing-dots span {
+    width: 6px;
+    height: 6px;
+    background: #ff4d00;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1.0); }
+}
+/* dashboard.html <style> ichiga */
+/* Welcome Card Dizayni */
+.welcome-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    width: 100%;
+    max-width: 800px;
+    margin-top: 40px;
+}
+
+.feature-card {
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    padding: 20px;
+    border-radius: 16px;
+    transition: 0.3s;
+    text-align: left;
+    border-bottom: 2px solid transparent;
+}
+
+.feature-card:hover {
+    border-bottom-color: #ff4d00;
+    transform: translateY(-5px);
+    background: #0f0f0f;
+}
+
+.feature-card i { font-size: 1.5rem; margin-bottom: 10px; display: block; }
+
+/* Xatolik xabari stili */
+.error-msg {
+    align-self: center;
+    background: rgba(255, 68, 68, 0.1);
+    color: #ff4444;
+    border: 1px solid rgba(255, 68, 68, 0.2);
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+/* Hero Title - Ulkan Salomlashish Matni */
+.welcome-hero-title {
+    font-size: 5rem; /* Juda katta o'lcham */
+    font-weight: 800;
+    letter-spacing: -2px; /* Harflarni bir-biriga yaqinlashtirish (modern uslub) */
+    margin-bottom: 5px;
+    line-height: 1;
+}
+
+.welcome-hero-title span {
+    background: linear-gradient(135deg, #ff4d00, #ffaa00, #ff0055);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientShift 5s ease infinite; /* Ranglar jilolanishi */
+}
+
+/* Ranglar jilolanishi animatsiyasi */
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Subtext - Pastdagi yordamchi matn */
+.welcome-subtext {
+    color: #555;
+    font-size: 1.4rem;
+    font-weight: 400;
+    margin-top: 10px;
+}
+/* 1. Umumiy sahifa tartibi */
+body {
+    display: flex;
+    height: 100vh;
+    overflow: hidden; /* Asosiy sahifa skroll bo'lmaydi */
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding-bottom: 100px; /* Input uchun joy qoldiramiz */
+}
+
+/* 2. Chat Box skroll bo'ladigan qismi */
+#chatBox {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    padding-bottom: 20px; /* Inputdan oldin bo'shliq */
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto; /* O'rtaga olish */
+}
+
+/* 3. Inputni pastga qat'iy (Fixed) qo'yish */
+.bottom-input-wrapper {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(to top, #000 70%, transparent); /* Orqa fon silliq o'tishi */
+    padding: 20px 0;
+    display: flex;
+    justify-content: center;
+    z-index: 10;
+}
+
+.input-box {
+    width: 90%;
+    max-width: 800px;
+    background: #0d0d0d;
+    border: 1px solid #1a1a1a;
+    border-radius: 30px;
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* 4. AI O'ylayotgan animatsiya (Ikkita aylanadigan nuqta) */
+.ai-thinking-indicator {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    background: #1a1a1a;
+    border-radius: 15px;
+    margin-bottom: 15px;
+}
+
+.thinking-dots {
+    display: flex;
+    gap: 5px;
+}
+
+.thinking-dots span {
+    width: 8px;
+    height: 8px;
+    background: #ff4d00;
+    border-radius: 50%;
+    animation: thinkingBounce 1s infinite ease-in-out;
+}
+
+.thinking-dots span:nth-child(2) {
+    animation-delay: 0.2s; /* Ikkinchi nuqta kechroq boshlaydi */
+    opacity: 0.7;
+}
+
+@keyframes thinkingBounce {
+    0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+    40% { transform: scale(1); opacity: 1; }
+}
+/* dashboard.html <style> qismiga */
+.welcome-hero-title {
+    font-size: 3.5rem; /* 5rem dan 3.5rem ga tushirdik */
+    font-weight: 800;
+    margin-bottom: 20px;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.welcome-subtext {
+    font-size: 1.1rem;
+    color: #888;
+    margin-bottom: 40px; /* Kartalar bilan oraliqni ochdik */
+}
+.bottom-input-wrapper {
+    position: fixed; /* Sahifa tagiga mahkamlanadi */
+    bottom: 0;
+    left: 260px; /* Sidebar kengligini hisobga olib (agar sidebar bo'lsa) */
+    right: 0;
+    background: #000; /* Orqa fon qora bo'lsin */
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    z-index: 100;
+}
+
+#chatBox {
+    padding-bottom: 120px; /* Xabarlar inputning tagida qolib ketmasligi uchun */
+    height: calc(100vh - 100px); /* Skroll faqat chatbox ichida bo'lishi uchun */
+    overflow-y: auto;
+}
+/* CSS qismiga qo'shish */
+.thinking-container {
+    display: flex;
+    gap: 8px;
+    padding: 10px;
+    align-self: flex-start;
+}
+
+.thinking-dot {
+    width: 10px;
+    height: 10px;
+    background-color: #ff4d00;
+    border-radius: 50%;
+    animation: bounce 0.6s infinite alternate;
+}
+
+.thinking-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+@keyframes bounce {
+    to { transform: translateY(-8px); opacity: 0.5; }
+}
+/* Asosiy konteyner */
+.bottom-input-wrapper {
+    position: fixed;
+    bottom: 0;
+    left: 260px; /* Sidebar bo'lsa */
+    right: 0;
+    padding: 20px;
+    background: linear-gradient(to top, #000 80%, transparent);
+    display: flex;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Gemini uslubidagi Input Card */
+.input-card {
+    width: 100%;
+    max-width: 850px;
+    background: #111111;
+    border: 1px solid #222;
+    border-radius: 24px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-card:focus-within {
+    background: #151515;
+    border-color: #333;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+/* Matn yozish maydoni */
+#dashInput {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #e3e3e3;
+    font-size: 1rem;
+    outline: none;
+    resize: none;
+    min-height: 40px;
+    max-height: 200px;
+    font-family: inherit;
+    padding: 8px 4px;
+}
+
+/* Pastki tugmalar qatori */
+.input-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 4px;
+}
+
+.left-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Model tanlash (Pastda, sodda ko'rinishda) */
+#modelSelect {
+    background: transparent;
+    color: #aaa;
+    border: 1px solid #333;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    outline: none;
+    transition: 0.2s;
+}
+
+#modelSelect:hover {
+    background: #222;
+    color: #fff;
+}
+
+/* Jo'natish tugmasi */
+.send-btn {
+    background: #ff4d00;
+    color: white;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.send-btn:hover {
+    transform: scale(1.05);
+    background: #ff6622;
+}
+
+.send-btn:disabled {
+    background: #222;
+    color: #555;
+    cursor: not-allowed;
+}
+#chatBox {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 150px; /* Input uchun joy */
+    height: calc(100vh - 120px); /* Ekran balandligini cheklash */
+}
+
+.bottom-input-wrapper {
+    position: fixed; /* Absolute emas, FIXED bo'lishi shart */
+    bottom: 0;
+    left: 260px; /* Sidebar kengligi */
+    right: 0;
+    z-index: 1000;
+    background: linear-gradient(to top, #000 70%, transparent);
+}
+#modelSelect {
+    background: #1a1a1a;
+    color: #ff4d00;
+    border: 1px solid #333;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    min-width: 160px; /* Kenglikni biroz oshirdik */
+}
+
+/* Guruh nomlari (Llama, GPT OSS...) */
+#modelSelect optgroup {
+    background: #000;
+    color: #888;
+    font-style: normal;
+    font-weight: 400;
+}
+
+/* Modellar ro'yxati */
+#modelSelect option {
+    background: #111;
+    color: #fff;
+    padding: 10px;
+}
+</style>
+
+<div class="main-content">
+    <header class="top-bar">
+
+    </header>
+
+   <div id="chatBox">
+        
+        <div id="welcome-text-section" style="{{ 'display: none;' if history else 'display: flex;' }} flex-direction: column; align-items: center; text-align: center; margin-top: 50px;">
+            <h1 class="welcome-hero-title">Salom, <span>{{ user.username }}</span></h1>
+            <p class="welcome-subtext">Bugun qanday loyiha ustida ishlaymiz?</p>
+            <div class="welcome-grid">
+            <div class="feature-card">
+                <i>🚀</i>
+                <h4 style="margin:0; color:#fff;">Tezkor AI</h4>
+                <p style="font-size:0.8rem; color:#555; margin-top:5px;">Llama 3.3 bilan soniyalarda javob oling.</p>
+            </div>
+            <div class="feature-card">
+                <i>💻</i>
+                <h4 style="margin:0; color:#fff;">Kod Ustasi</h4>
+                <p style="font-size:0.8rem; color:#555; margin-top:5px;">Professional darajadagi kodlar va tahlil.</p>
+            </div>
+            <div class="feature-card">
+                <i>🧠</i>
+                <h4 style="margin:0; color:#fff;">Aqlli Mantiq</h4>
+                <p style="font-size:0.8rem; color:#555; margin-top:5px;">Murakkab masalalarda mantiqiy yechimlar.</p>
+            </div>
+        </div>
+        </div>
+
+        {% if history %}
+            {% for msg in history %}
+    <div class="chat-msg" style="align-self: {{ 'flex-end' if msg.role == 'user' else 'flex-start' }}; background: {{ '#ff4d00' if msg.role == 'user' else '#1a1a1a' }}; padding: 12px 18px; border-radius: 18px; max-width: 80%; color: white; margin-bottom: 10px;">
+        {{ msg.content }} </div>
+{% endfor %}
+        {% endif %}
+
+        </div>
+
+   <div class="bottom-input-wrapper">
+    <div class="input-card">
+        <textarea id="dashInput" 
+                  placeholder="PinokioAI'dan so'rang..." 
+                  rows="1"
+                  oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"
+                  onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendDashMsg(); }"></textarea>
+
+        <div class="input-actions">
+            <div class="left-actions">
+                <button title="Rasm qo'shish (Tez orada)" style="background:none; border:none; color:#555; cursor:pointer; font-size:1.2rem;">+</button>
+                
+               <select id="modelSelect">
+    <optgroup label="Llama (Meta)">
+        <option value="llama">Llama 3.3 70B (Eng aqlli)</option>
+        <option value="llama_mini">Llama 3.1 8B (Tezkor)</option>
+        <option value="llama4_scout">Llama 4 Scout (Yangi)</option>
+    </optgroup>
+
+    <optgroup label="Murakkab Modellar">
+        <option value="compound">Compound (Groq)</option>
+        <option value="compound_mini">Compound Mini</option>
+        <option value="qwen3">Qwen3 32B (Kodlash uchun)</option>
+    </optgroup>
+
+    <optgroup label="GPT OSS (Ochiq manba)">
+        <option value="gpt_oss_120b">GPT OSS 120B (Ulkan)</option>
+        <option value="gpt_oss_20b">GPT OSS 20B (Super tezkor)</option>
+    </optgroup>
+
+    <optgroup label="Xavfsizlik">
+        <option value="safety_gpt">Safety GPT (Himoyalangan)</option>
+    </optgroup>
+</select>
+            </div>
+
+            <button class="send-btn" id="sendBtn" onclick="sendDashMsg()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+
+
+
+
+
+
+
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']]
+    }
+  };
+   let currentDashChatId = new URLSearchParams(window.location.search).get('chat_id') || null;
+    // 1. Birinchi bo'lib appendMessage funksiyasini qo'ying
+    // dashboard.html ichidagi appendMessage funksiyasiga qo'shimcha
+function appendMessage(role, text) {
+    const chatBox = document.getElementById('chatBox');
+    const div = document.createElement('div');
+    
+    div.style.cssText = `
+        align-self: ${role === 'user' ? 'flex-end' : 'flex-start'};
+        background: ${role === 'user' ? '#ff4d00' : '#1a1a1a'};
+        padding: 15px 20px;
+        border-radius: 20px;
+        max-width: 85%;
+        color: white;
+        margin-bottom: 15px;
+        line-height: 1.6;
+    `;
+
+    chatBox.appendChild(div);
+
+    if (role === 'user') {
+        div.textContent = text;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    } else {
+        let i = 0;
+        function typeWriter() {
+            if (i < text.length) {
+                const currentText = text.substring(0, i + 1);
+                
+                // XATONI OLDINI OLISH: marked borligini tekshiramiz
+                if (window.marked) {
+                    div.innerHTML = marked.parse(currentText);
+                } else {
+                    div.textContent = currentText;
+                }
+
+                // Kod bloklarini chiroyli qilish
+                const codes = div.querySelectorAll('pre');
+                codes.forEach(c => c.style.cssText = "background:#000;padding:15px;border-radius:12px;overflow-x:auto;margin:10px 0;");
+
+                i++;
+                chatBox.scrollTop = chatBox.scrollHeight;
+                setTimeout(typeWriter, 15);
+            } else {
+                // Matn tugagach kasrlarni (MathJax) chizish
+                if (window.MathJax) {
+                    MathJax.typesetPromise([div]).catch((err) => console.log(err.message));
+                }
+            }
+        }
+        typeWriter();
+    }
+}
+    function typeWriter() {
+    if (i < text.length) {
+        div.innerHTML = marked.parse(text.substring(0, i + 1));
+        // ... (kod bloklari stili) ...
+        i++;
+        chatBox.scrollTop = chatBox.scrollHeight;
+        setTimeout(typeWriter, 15);
+    } else {
+        // MATN TUGAGANDA KASRLARNI CHIZISH
+        if (window.MathJax) {
+            MathJax.typesetPromise([div]); 
+        }
+    }
+}
+    // appendMessage funksiyasi ichida, AI yozib bo'lgandan keyin:
+if (window.MathJax) {
+    MathJax.typesetPromise(); // Bu buyruq kasrlarni chiroyli qilib chizadi
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const heroTitle = document.querySelector('.welcome-hero-title span');
+    if(heroTitle) {
+        const fullText = heroTitle.textContent;
+        heroTitle.textContent = '';
+        let j = 0;
+        function typeHero() {
+            if (j < fullText.length) {
+                heroTitle.textContent += fullText.charAt(j);
+                j++;
+                setTimeout(typeHero, 100); // Sarlavha sekinroq yoziladi
+            }
+        }
+        typeHero();
+    }
+});
+async function sendDashMsg() {
+    const input = document.getElementById('dashInput');
+    const chatBox = document.getElementById('chatBox');
+    const msg = input.value.trim();
+    if(!msg) return;
+
+    appendMessage('user', msg);
+    input.value = '';
+
+    // Animatsiyani yaratish
+    const thinkingDiv = document.createElement('div');
+    thinkingDiv.id = 'thinking';
+    thinkingDiv.className = 'thinking-container';
+    thinkingDiv.innerHTML = '<div class="thinking-dot"></div><div class="thinking-dot"></div>';
+    chatBox.appendChild(thinkingDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    try {
+        const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ message: msg, chat_id: currentDashChatId, model: document.getElementById('modelSelect').value })
+        });
+        const data = await res.json();
+        
+        // Animatsiyani o'chirish
+        document.getElementById('thinking').remove();
+        
+        if(data.reply) {
+            currentDashChatId = data.chat_id;
+            appendMessage('ai', data.reply);
+        }
+    } catch (e) {
+        document.getElementById('thinking').remove();
+    }
+}
+</script>
+{% endblock %}

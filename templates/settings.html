@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <h1 style="font-size: 2rem; margin-bottom: 10px;">Profil sozlamalari</h1>
+    <p style="color: var(--text); margin-bottom: 40px;">Shaxsiy ma'lumotlaringizni shu yerdan boshqaring.</p>
+
+    <form action="/settings" method="POST" style="display: flex; flex-direction: column; gap: 20px;">
+        <div>
+            <label style="display:block; color:var(--text); font-size:0.8rem; margin-bottom:8px;">Foydalanuvchi ismi</label>
+            <input type="text" name="username" value="{{ user.username }}" style="width:100%; background:#111; border:1px solid var(--border); padding:12px; border-radius:8px; color:#fff; outline:none;">
+        </div>
+        <div>
+            <label style="display:block; color:var(--text); font-size:0.8rem; margin-bottom:8px;">Email (O'zgartirib bo'lmaydi)</label>
+            <input type="email" value="{{ user.email }}" disabled style="width:100%; background:#050505; border:1px solid var(--border); padding:12px; border-radius:8px; color:#555;">
+        </div>
+        <div>
+            <label style="display:block; color:var(--text); font-size:0.8rem; margin-bottom:8px;">Yangi parol</label>
+            <input type="password" name="password" placeholder="********" style="width:100%; background:#111; border:1px solid var(--border); padding:12px; border-radius:8px; color:#fff; outline:none;">
+        </div>
+        <button type="submit" style="background:var(--fire); color:#fff; border:none; padding:15px; border-radius:12px; font-weight:600; cursor:pointer; margin-top:10px;">O'zgarishlarni saqlash</button>
+    </form>
+</div>
+{% endblock %}

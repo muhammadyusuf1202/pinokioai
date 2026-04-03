@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PinokioAI — Aqlli Yordamchi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fire: #FF5E1A;
+    --fire-dim: #FF8A52;
+    --slate: #4B5563;
+    --slate-dark: #1F2937;
+    --slate-light: #9CA3AF;
+    --white: #FFFFFF;
+    --bg: #F9F7F5;
+    --card-bg: #FFFFFF;
+  }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--slate-dark);
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; width: 100%; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 4rem;
+    background: rgba(249,247,245,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(75,85,99,0.1);
+  }
+  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--slate-dark); }
+  .logo span { color: var(--fire); }
+  .nav-links { display: flex; gap: 1.5rem; }
+  .nav-links a {
+    text-decoration: none; color: var(--slate);
+    font-size: 0.95rem; font-weight: 500;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--fire); }
+  .btn-nav {
+    background: var(--fire); color: var(--white);
+    padding: .55rem 1.4rem; border-radius: 8px;
+    text-decoration: none; font-weight: 600; font-size: 0.9rem;
+    transition: background .2s, transform .2s;
+  }
+  .btn-nav:hover { background: #E04A08; transform: translateY(-1px); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 8rem 4rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 70% 60% at 80% 30%, rgba(255,94,26,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 50% at 10% 80%, rgba(75,85,99,0.08) 0%, transparent 70%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0; z-index: 0;
+    background-image: linear-gradient(rgba(75,85,99,0.05) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(75,85,99,0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .hero-content {
+    position: relative; z-index: 1;
+    max-width: 760px; text-align: center;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: rgba(255,94,26,0.1); border: 1px solid rgba(255,94,26,0.25);
+    color: var(--fire); padding: .4rem 1rem; border-radius: 50px;
+    font-size: .8rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+    margin-bottom: 2rem;
+    animation: fadeDown .6s ease both;
+  }
+  .badge::before { content: "●"; font-size: .5rem; }
+  h1 {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: 1.05;
+    color: var(--slate-dark);
+    animation: fadeUp .7s .1s ease both;
+  }
+  h1 em { font-style: normal; color: var(--fire); }
+  .hero-sub {
+    margin-top: 1.5rem; font-size: 1.15rem; color: var(--slate);
+    line-height: 1.7; max-width: 580px; margin-inline: auto;
+    animation: fadeUp .7s .2s ease both;
+  }
+  .hero-actions {
+    margin-top: 2.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+    animation: fadeUp .7s .3s ease both;
+  }
+  .btn-primary {
+    background: var(--fire); color: var(--white);
+    padding: .85rem 2.2rem; border-radius: 10px;
+    text-decoration: none; font-weight: 700; font-size: 1rem;
+    box-shadow: 0 4px 20px rgba(255,94,26,0.35);
+    transition: all .2s;
+  }
+  .btn-primary:hover { background: #E04A08; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255,94,26,0.4); }
+  .btn-secondary {
+    background: transparent; color: var(--slate-dark);
+    padding: .85rem 2rem; border-radius: 10px;
+    text-decoration: none; font-weight: 600; font-size: 1rem;
+    border: 1.5px solid rgba(75,85,99,0.25);
+    transition: all .2s;
+  }
+  .btn-secondary:hover { border-color: var(--fire); color: var(--fire); }
+
+  /* FEATURES */
+  .features {
+    padding: 6rem 4rem;
+    max-width: 1100px; margin: 0 auto;
+  }
+  .section-label {
+    font-size: .8rem; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--fire); margin-bottom: 1rem;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(1.8rem, 4vw, 2.8rem); color: var(--slate-dark);
+    margin-bottom: 3.5rem;
+  }
+  .features-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+  .card {
+    background: var(--white); border: 1px solid rgba(75,85,99,0.1);
+    border-radius: 16px; padding: 2rem;
+    transition: transform .25s, box-shadow .25s;
+    position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--fire), var(--fire-dim));
+    transform: scaleX(0); transform-origin: left;
+    transition: transform .3s ease;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.08); }
+  .card:hover::before { transform: scaleX(1); }
+  .card-icon {
+    width: 48px; height: 48px; background: rgba(255,94,26,0.1);
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; margin-bottom: 1.2rem;
+  }
+  .card h3 {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 1.1rem; margin-bottom: .6rem; color: var(--slate-dark);
+  }
+  .card p { font-size: .95rem; color: var(--slate); line-height: 1.6; }
+
+  /* CTA */
+  .cta-section {
+    margin: 2rem 4rem 6rem;
+    background: linear-gradient(135deg, var(--slate-dark) 0%, #374151 100%);
+    border-radius: 24px; padding: 5rem 3rem; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .cta-section::before {
+    content: ""; position: absolute; top: -50%; right: -20%;
+    width: 500px; height: 500px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,94,26,0.2) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cta-section h2 {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(1.8rem, 4vw, 3rem); color: var(--white);
+    margin-bottom: 1rem; position: relative;
+  }
+  .cta-section p { color: rgba(255,255,255,0.65); font-size: 1.05rem; margin-bottom: 2.5rem; position: relative; }
+  .cta-section .btn-primary { display: inline-block; }
+
+  /* FOOTER */
+  footer {
+    text-align: center; padding: 2rem;
+    color: var(--slate-light); font-size: .85rem;
+    border-top: 1px solid rgba(75,85,99,0.1);
+  }
+  footer span { color: var(--fire); font-weight: 600; }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp   { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:none; } }
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-14px); } to { opacity:1; transform:none; } }
+
+  /* FLOATING SHAPES */
+  .shape {
+    position: absolute; border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+  }
+  .shape-1 { width:80px; height:80px; background:rgba(255,94,26,0.12); top:20%; right:8%; animation-delay:0s; }
+  .shape-2 { width:40px; height:40px; background:rgba(75,85,99,0.1); top:60%; left:5%; animation-delay:2s; }
+  .shape-3 { width:120px; height:120px; background:rgba(255,94,26,0.06); bottom:15%; right:20%; animation-delay:4s; }
+  @keyframes float {
+    0%,100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(10deg); }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Pinokio<span>AI</span></div>
+  <div class="nav-links">
+    <a href="#features">Imkoniyatlar</a>
+    <a href="{{ url_for('login') }}">Kirish</a>
+    <a href="{{ url_for('register') }}" class="btn-nav">Boshlash →</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="shape shape-1"></div>
+  <div class="shape shape-2"></div>
+  <div class="shape shape-3"></div>
+  <div class="hero-content">
+    <div class="badge">🔥 Yangi avlod AI</div>
+    <h1>Hamma narsaga<br><em>tayyor javob</em></h1>
+    <p class="hero-sub">
+      PinokioAI — sizning aqlli yordamchingiz. Savollar, kod, tahlil, tarjima — barchasiga tezkor va aniq javob.
+    </p>
+    <div class="hero-actions">
+      <a href="{{ url_for('register') }}" class="btn-primary">Bepul boshlash →</a>
+      <a href="{{ url_for('login') }}" class="btn-secondary">Kirish</a>
+    </div>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="section-label">Imkoniyatlar</div>
+  <div class="section-title">Nima qila oladi?</div>
+  <div class="features-grid">
+    <div class="card">
+      <div class="card-icon">💬</div>
+      <h3>Aqlli suhbat</h3>
+      <p>Har qanday mavzuda tabiiy suhbat — o'zbek, rus yoki ingliz tilida javob beradi.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">💾</div>
+      <h3>Tarix saqlash</h3>
+      <p>Barcha suhbatlaringiz saqlanadi. Istalgan vaqt qayta ko'rishingiz mumkin.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <h3>Ultra tez</h3>
+      <p>Groq infratuzilmasi asosida — javoblar bir soniyadan kam vaqtda keladi.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔒</div>
+      <h3>Xavfsiz</h3>
+      <p>Ma'lumotlaringiz shifrlangan va faqat sizga tegishli. Maxfiylik kafolati.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🧠</div>
+      <h3>Ko'p vazifali</h3>
+      <p>Kod yozish, tahlil, tarjima, ijodiy yozuv — barchasini bir joyda bajaring.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌐</div>
+      <h3>Ko'p tilli</h3>
+      <p>O'zbek, Rus, Ingliz va boshqa tillarda bemalol muloqot qiling.</p>
+    </div>
+  </div>
+</section>
+
+<div class="cta-section">
+  <h2>Bugun boshlang</h2>
+  <p>Ro'yxatdan o'tish bepul va bir daqiqadan ham kam vaqt oladi.</p>
+  <a href="{{ url_for('register') }}" class="btn-primary">Hoziroq boshlash →</a>
+</div>
+
+<footer>
+  © 2025 <span>PinokioAI</span>. Barcha huquqlar himoyalangan.
+</footer>
+
+</body>
+</html>
