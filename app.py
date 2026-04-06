@@ -18,23 +18,76 @@ def index():
     if 'user_id' in session:
         user = database.get_user_by_id(session['user_id'])
     return render_template('landing.html', user=user)
-@app.route('/check-pinokioai') # Maxfiy manzil
+@app.route('/check-pinokioai')
 def check_db():
     import sqlite3
     try:
         conn = sqlite3.connect('pinokioai.db')
         conn.row_factory = sqlite3.Row
-        users = conn.execute("SELECT id, username, email FROM users").fetchall()
+        users = conn.execute("SELECT id, username, email, plan FROM users").fetchall()
+        chats = conn.execute("SELECT id, user_id, title, created_at FROM chats").fetchall()
         conn.close()
+
+        # Chiroyli HTML dizayn (Bootstrap bilan)
+        html = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>PinokioAI Admin</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+            <style>
+                body { background-color: #121212; color: #e0e0e0; padding: 20px; }
+                .card { background-color: #1e1e1e; border: 1px solid #333; margin-bottom: 20px; }
+                .table { color: #e0e0e0; }
+                h2 { color: #ff6b00; border-left: 5px solid #ff6b00; padding-left: 15px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1 class="text-center mb-5">🚀 PinokioAI Dashboard</h1>
+                
+                <div class="card p-4">
+                    <h2>👤 Foydalanuvchilar ({user_count})</h2>
+                    <table class="table table-hover mt-3">
+                        <thead class="table-dark">
+                            <tr><th>ID</th><th>Username</th><th>Email</th><th>Plan</th></tr>
+                        </thead>
+                        <tbody>
+        """
+        for u in users:
+            html += f"<tr><td>{u['id']}</td><td>{u['username']}</td><td>{u['email']}</td><td><span class='badge bg-warning text-dark'>{u['plan']}</span></td></tr>"
         
-        # Foydalanuvchilarni ekranda ko'rsatish
-        html = "<h1>Foydalanuvchilar ro'yxati:</h1><ul>"
-        for user in users:
-            html += f"<li>ID: {user['id']} | User: {user['username']} | Email: {user['email']}</li>"
-        html += "</ul>"
+        html += """
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card p-4">
+                    <h2>💬 Chatlar Tarixi ({chat_count})</h2>
+                    <table class="table table-hover mt-3">
+                        <thead class="table-dark">
+                            <tr><th>ID</th><th>User ID</th><th>Mavzu</th><th>Vaqt</th></tr>
+                        </thead>
+                        <tbody>
+        """
+        for c in chats:
+            html += f"<tr><td>{c['id']}</td><td>{c['user_id']}</td><td>{c['title']}</td><td>{c['created_at']}</td></tr>"
+
+        html += """
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-4">
+                    <a href="/" class="btn btn-outline-light">Asosiy sahifaga qaytish</a>
+                </div>
+            </div>
+        </body>
+        </html>
+        """.format(user_count=len(users), chat_count=len(chats))
+        
         return html
     except Exception as e:
-        return f"Xatolik yuz berdi: {str(e)}"
+        return f"<div style='color:red; background:white; padding:20px;'>Xatolik: {str(e)}</div>"
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
