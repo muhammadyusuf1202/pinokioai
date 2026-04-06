@@ -18,6 +18,23 @@ def index():
     if 'user_id' in session:
         user = database.get_user_by_id(session['user_id'])
     return render_template('landing.html', user=user)
+@app.route('/check-pinokioai') # Maxfiy manzil
+def check_db():
+    import sqlite3
+    try:
+        conn = sqlite3.connect('pinokioai.db')
+        conn.row_factory = sqlite3.Row
+        users = conn.execute("SELECT id, username, email FROM users").fetchall()
+        conn.close()
+        
+        # Foydalanuvchilarni ekranda ko'rsatish
+        html = "<h1>Foydalanuvchilar ro'yxati:</h1><ul>"
+        for user in users:
+            html += f"<li>ID: {user['id']} | User: {user['username']} | Email: {user['email']}</li>"
+        html += "</ul>"
+        return html
+    except Exception as e:
+        return f"Xatolik yuz berdi: {str(e)}"
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
