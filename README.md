@@ -23,7 +23,7 @@ pinokioai/
 ├── requirements.txt
 ├── templates/
 │   ├── base.html       # Umumiy layout + nav
-│   ├── index.html      # Bosh sahifa (Groq style)
+│   ├── landing.html      # Bosh sahifa (Groq style)
 │   ├── register.html   # Ro'yxatdan o'tish
 │   ├── login.html      # Kirish
 │   └── dashboard.html  # Foydalanuvchi paneli

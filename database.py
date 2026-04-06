@@ -54,7 +54,6 @@ def init_db():
     conn.commit()
     conn.close()
     print("Baza muvaffaqiyatli yangilandi!")
-
 def get_user_chats(user_id):
     """Foydalanuvchining barcha chatlarini olish"""
     conn = get_conn()
@@ -78,19 +77,21 @@ def get_chat_history(chat_id, user_id):
     return [dict(r) for r in rows]
 
 def register_user(username, email, password):
-    """Yangi foydalanuvchini ro'yxatdan o'tkazish"""
+    conn = get_conn()
     try:
-        conn = get_conn()
         hashed_pw = _hash(password)
-        conn.execute(
-            "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
-            (username, email, hashed_pw)
-        )
-        conn.commit()
-        conn.close()
+        with conn: # 'with' ishlatilsa, commit() va xatolar avtomatik hal bo'ladi
+            conn.execute(
+                "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
+                (username, email, hashed_pw)
+            )
         return True, "Muvaffaqiyatli ro'yxatdan o'tdingiz!"
     except sqlite3.IntegrityError:
         return False, "Bu username yoki email allaqachon band!"
+    except Exception as e:
+        return False, f"Xatolik: {str(e)}"
+    finally:
+        conn.close() # Har qanday holatda ulanishni yopish shart
 
 def login_user(email, password):
     """Foydalanuvchi loginini tekshirish"""
