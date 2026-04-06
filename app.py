@@ -7,8 +7,8 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'pinokioai-secret-2024-xK9mL'
 
-# Groq API kaliti
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+# Groq API kaliti   
+api_key = os.environ.get("GROQ_API_KEY")
 
 # --- ROUTES ---
 
@@ -143,7 +143,10 @@ def api_chat():
     database.save_message(chat_id, user_id, 'user', user_message)
 
     try:
-        client = Groq(api_key=GROQ_API_KEY)
+        if not api_key:
+            print("XATO: GROQ_API_KEY topilmadi!")
+
+        client = Groq(api_key=api_key)
         
         # 5. Xabarlar tuzilishi (System prompt + User message)
         messages_to_send = [
