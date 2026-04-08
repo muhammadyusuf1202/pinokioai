@@ -28,111 +28,21 @@ def full_admin_view():
         conn = sqlite3.connect('pinokioai.db')
         conn.row_factory = sqlite3.Row
         
-        # 1. Hammani olish
+        # Hamma ma'lumotlarni yig'amiz
         users = conn.execute("SELECT * FROM users").fetchall()
-        # 2. Hamma chatlarni olish
-        chats = conn.execute("SELECT * FROM chats").fetchall()
-        # 3. Hamma xabarlarni olish
+        chats = conn.execute("SELECT * FROM chats ORDER BY id DESC").fetchall()
         messages = conn.execute("SELECT * FROM messages ORDER BY id DESC").fetchall()
         
         conn.close()
 
-        # HTML va CSS Dizayn
-        html = """
-        <!DOCTYPE html>
-        <html lang="uz">
-        <head>
-            <meta charset="UTF-8">
-            <title>PinokioAI | Full DB Control</title>
-            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-            <style>
-                body { background-color: #0b0b0b; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 30px; }
-                h1, h2 { color: #ff6b00; text-transform: uppercase; letter-spacing: 2px; border-bottom: 2px solid #ff6b00; padding-bottom: 10px; }
-                .card { background-color: #1a1a1a; border: 1px solid #333; margin-bottom: 40px; border-radius: 15px; overflow: hidden; }
-                .table { color: #ddd; margin-bottom: 0; }
-                .table-dark { background-color: #222; }
-                tr:hover { background-color: #2a2a2a !important; transition: 0.3s; }
-                .badge-user { background-color: #007bff; }
-                .badge-ai { background-color: #28a745; }
-                .content-cell { max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            </style>
-        </head>
-        <body>
-            <div class="container-fluid">
-                <h1 class="text-center mb-5">🍌 PinokioAI Maxfiy Baza Boshqaruvi</h1>
-
-                <div class="card shadow">
-                    <div class="p-3 bg-dark"><h2>👤 Foydalanuvchilar ({u_count})</h2></div>
-                    <div class="table-responsive">
-                        <table class="table table-dark table-striped">
-                            <thead>
-                                <tr><th>ID</th><th>Username</th><th>Email</th><th>Plan</th><th>Yaratilgan</th></tr>
-                            </thead>
-                            <tbody>
-        """
-        for u in users:
-            html += f"<tr><td>{u['id']}</td><td>{u['username']}</td><td>{u['email']}</td><td>{u.get('plan', 'free')}</td><td>{u.get('created_at', 'Noma\'lum')}</td></tr>"
+        # HTML faylga hamma listlarni yuboramiz
+        return render_template('admin_db.html', 
+                               users=users, 
+                               chats=chats, 
+                               messages=messages)
         
-        html += """
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card shadow">
-                    <div class="p-3 bg-dark"><h2>💬 Chat Seanslari ({c_count})</h2></div>
-                    <div class="table-responsive">
-                        <table class="table table-dark table-striped">
-                            <thead>
-                                <tr><th>Chat ID</th><th>User ID</th><th>Mavzu</th><th>Vaqt</th></tr>
-                            </thead>
-                            <tbody>
-        """
-        for c in chats:
-            html += f"<tr><td>{c['id']}</td><td>{c['user_id']}</td><td>{c['title']}</td><td>{c['created_at']}</td></tr>"
-
-        html += """
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card shadow">
-                    <div class="p-3 bg-dark"><h2>✉️ Hamma Xabarlar ({m_count})</h2></div>
-                    <div class="table-responsive">
-                        <table class="table table-dark table-striped">
-                            <thead>
-                                <tr><th>ID</th><th>Chat ID</th><th>Kim</th><th>Xabar</th><th>Model</th></tr>
-                            </thead>
-                            <tbody>
-        """
-        for m in messages:
-            role_badge = "badge-user" if m['role'] == 'user' else "badge-ai"
-            html += f"""<tr>
-                <td>{m['id']}</td>
-                <td>{m['chat_id']}</td>
-                <td><span class="badge {role_badge}">{m['role']}</span></td>
-                <td class="content-cell" title="{m['content']}">{m['content']}</td>
-                <td>{m.get('model_used', 'N/A')}</td>
-            </tr>"""
-
-        html += """
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <div class="text-center mt-4">
-                    <a href="/dashboard" class="btn btn-warning btn-lg">Dashboardga Qaytish</a>
-                </div>
-            </div>
-        </body>
-        </html>
-        """.format(u_count=len(users), c_count=len(chats), m_count=len(messages))
-        
-        return html
     except Exception as e:
-        return f"<div style='background:white; color:red; padding:20px;'>DB Xatosi: {str(e)}</div>"
+        return f"Xatolik yuz berdi: {str(e)}"
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -222,9 +132,10 @@ def api_chat():
     # 1. System Prompt - AIga shaxsiyat beramiz
     system_prompt = (
         "Sen PinoikiAI — professional dasturlash yordamchisisan.Sen har doim o'zbekcha gpirishing shart va agar til o'rgtish uchun bo'lsa boshqa tillada gapirishing mumkin. "
-        "Javoblaringda kodlarni doimo markdown ```python  ``` (yoki tegishli til nomi) "
+        "Javoblaringda kodlarni doimo markdown kodni esa alohida yoz (yoki tegishli til nomi) "
         "bloklari ichida ber. Tushuntirishlaring qisqa va aniq bo'lsin." 
         "Agar foydalanuvchi bilan gaplash, judayam kam yozma judayam ko'p yozma"
+        "Sening yaratuvching yoki seni yaratgan odam ismi Abdug'afforov Muhammadyusuf.Sening kompaniyang PinokioAI Meta"
     )
 
     # 2. Model tanlash mantiqi
