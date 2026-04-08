@@ -18,76 +18,121 @@ def index():
     if 'user_id' in session:
         user = database.get_user_by_id(session['user_id'])
     return render_template('landing.html', user=user)
-@app.route('/check-pinokioai')
-def check_db():
+@app.route('/admin-full-db-777')
+def full_admin_view():
     import sqlite3
+    if 'user_id' not in session:
+        return "Ruxsat yo'q! Avval login qiling.", 403
+        
     try:
         conn = sqlite3.connect('pinokioai.db')
         conn.row_factory = sqlite3.Row
-        users = conn.execute("SELECT id, username, email, plan FROM users").fetchall()
-        chats = conn.execute("SELECT id, user_id, title, created_at FROM chats").fetchall()
+        
+        # 1. Hammani olish
+        users = conn.execute("SELECT * FROM users").fetchall()
+        # 2. Hamma chatlarni olish
+        chats = conn.execute("SELECT * FROM chats").fetchall()
+        # 3. Hamma xabarlarni olish
+        messages = conn.execute("SELECT * FROM messages ORDER BY id DESC").fetchall()
+        
         conn.close()
 
-        # Chiroyli HTML dizayn (Bootstrap bilan)
+        # HTML va CSS Dizayn
         html = """
         <!DOCTYPE html>
-        <html>
+        <html lang="uz">
         <head>
-            <title>PinokioAI Admin</title>
+            <meta charset="UTF-8">
+            <title>PinokioAI | Full DB Control</title>
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
             <style>
-                body { background-color: #121212; color: #e0e0e0; padding: 20px; }
-                .card { background-color: #1e1e1e; border: 1px solid #333; margin-bottom: 20px; }
-                .table { color: #e0e0e0; }
-                h2 { color: #ff6b00; border-left: 5px solid #ff6b00; padding-left: 15px; }
+                body { background-color: #0b0b0b; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 30px; }
+                h1, h2 { color: #ff6b00; text-transform: uppercase; letter-spacing: 2px; border-bottom: 2px solid #ff6b00; padding-bottom: 10px; }
+                .card { background-color: #1a1a1a; border: 1px solid #333; margin-bottom: 40px; border-radius: 15px; overflow: hidden; }
+                .table { color: #ddd; margin-bottom: 0; }
+                .table-dark { background-color: #222; }
+                tr:hover { background-color: #2a2a2a !important; transition: 0.3s; }
+                .badge-user { background-color: #007bff; }
+                .badge-ai { background-color: #28a745; }
+                .content-cell { max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
             </style>
         </head>
         <body>
-            <div class="container">
-                <h1 class="text-center mb-5">🚀 PinokioAI Dashboard</h1>
-                
-                <div class="card p-4">
-                    <h2>👤 Foydalanuvchilar ({user_count})</h2>
-                    <table class="table table-hover mt-3">
-                        <thead class="table-dark">
-                            <tr><th>ID</th><th>Username</th><th>Email</th><th>Plan</th></tr>
-                        </thead>
-                        <tbody>
+            <div class="container-fluid">
+                <h1 class="text-center mb-5">🍌 PinokioAI Maxfiy Baza Boshqaruvi</h1>
+
+                <div class="card shadow">
+                    <div class="p-3 bg-dark"><h2>👤 Foydalanuvchilar ({u_count})</h2></div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr><th>ID</th><th>Username</th><th>Email</th><th>Plan</th><th>Yaratilgan</th></tr>
+                            </thead>
+                            <tbody>
         """
         for u in users:
-            html += f"<tr><td>{u['id']}</td><td>{u['username']}</td><td>{u['email']}</td><td><span class='badge bg-warning text-dark'>{u['plan']}</span></td></tr>"
+            html += f"<tr><td>{u['id']}</td><td>{u['username']}</td><td>{u['email']}</td><td>{u.get('plan', 'free')}</td><td>{u.get('created_at', 'Noma\'lum')}</td></tr>"
         
         html += """
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <div class="card p-4">
-                    <h2>💬 Chatlar Tarixi ({chat_count})</h2>
-                    <table class="table table-hover mt-3">
-                        <thead class="table-dark">
-                            <tr><th>ID</th><th>User ID</th><th>Mavzu</th><th>Vaqt</th></tr>
-                        </thead>
-                        <tbody>
+                <div class="card shadow">
+                    <div class="p-3 bg-dark"><h2>💬 Chat Seanslari ({c_count})</h2></div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr><th>Chat ID</th><th>User ID</th><th>Mavzu</th><th>Vaqt</th></tr>
+                            </thead>
+                            <tbody>
         """
         for c in chats:
             html += f"<tr><td>{c['id']}</td><td>{c['user_id']}</td><td>{c['title']}</td><td>{c['created_at']}</td></tr>"
 
         html += """
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+
+                <div class="card shadow">
+                    <div class="p-3 bg-dark"><h2>✉️ Hamma Xabarlar ({m_count})</h2></div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr><th>ID</th><th>Chat ID</th><th>Kim</th><th>Xabar</th><th>Model</th></tr>
+                            </thead>
+                            <tbody>
+        """
+        for m in messages:
+            role_badge = "badge-user" if m['role'] == 'user' else "badge-ai"
+            html += f"""<tr>
+                <td>{m['id']}</td>
+                <td>{m['chat_id']}</td>
+                <td><span class="badge {role_badge}">{m['role']}</span></td>
+                <td class="content-cell" title="{m['content']}">{m['content']}</td>
+                <td>{m.get('model_used', 'N/A')}</td>
+            </tr>"""
+
+        html += """
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
                 <div class="text-center mt-4">
-                    <a href="/" class="btn btn-outline-light">Asosiy sahifaga qaytish</a>
+                    <a href="/dashboard" class="btn btn-warning btn-lg">Dashboardga Qaytish</a>
                 </div>
             </div>
         </body>
         </html>
-        """.format(user_count=len(users), chat_count=len(chats))
+        """.format(u_count=len(users), c_count=len(chats), m_count=len(messages))
         
         return html
     except Exception as e:
-        return f"<div style='color:red; background:white; padding:20px;'>Xatolik: {str(e)}</div>"
+        return f"<div style='background:white; color:red; padding:20px;'>DB Xatosi: {str(e)}</div>"
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
