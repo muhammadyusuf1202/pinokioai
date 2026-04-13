@@ -11,7 +11,9 @@ app.config['SECRET_KEY'] = 'pinokioai-secret-2024-xK9mL'
 api_key = os.environ.get("GROQ_API_KEY")
 
 # --- ROUTES ---
-
+@app.route('/google57f52f1538d0a01f.html')
+def google_verify():
+    return render_template('google57f52f1538d0a01f.html')
 @app.route('/')
 def index():
     user = None
