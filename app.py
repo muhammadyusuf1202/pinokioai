@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
-from fastapi.responses import PlainTextResponse
+# from fastapi.responses import PlainTextResponse
 from groq import Groq
 import os
 import database 
@@ -13,13 +13,11 @@ app.config['SECRET_KEY'] = 'pinokioai-secret-2024-xK9mL'
 api_key = os.environ.get("GROQ_API_KEY")
 
 # --- ROUTES ---
-@app.get("/robots.txt", response_class=PlainTextResponse)
-def get_robots():
-    # Agar fayl rootda bo'lsa, uni o'qib qaytaradi
-    if os.path.exists("robots.txt"):
-        with open("robots.txt", "r") as f:
-            return f.read()
-    # Agar fayl topilmasa, standart ruxsatni qaytaradi
+@app.get("/robots.txt")
+async def robots():
+    file_path = os.path.join(os.getcwd(), "robots.txt")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
     return "User-agent: *\nAllow: /"
 @app.route('/google57f52f1538d0a01f.html')
 def google_verify():
